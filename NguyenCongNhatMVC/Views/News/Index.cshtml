@@ -1,0 +1,240 @@
+@model NewsIndexViewModel
+@{
+    ViewData["Title"] = "News";
+}
+
+<partial name="_Alerts" />
+
+@if (!Model.IsAdminView)
+{
+    <!-- Public hero search bar -->
+    <div class="news-hero">
+        <div class="news-hero-inner">
+            <h1 class="news-hero-title">Campus News</h1>
+            <p class="news-hero-sub">Stay up to date with the latest university updates, events, and announcements.</p>
+            <form method="get" class="news-hero-search" action="@Url.Action("Index")">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" class="hero-search-icon">
+                    <circle cx="8" cy="8" r="5.5" stroke="#64748b" stroke-width="1.5"/>
+                    <path d="M12.5 12.5l3 3" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <input class="hero-search-input" name="keyword" value="@Model.Keyword" placeholder="Search articles, events, announcements…" />
+                <button class="hero-search-btn" type="submit">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Filter chips row -->
+    <div class="filter-row">
+        <form method="get" class="filter-row-form" action="@Url.Action("Index")">
+            <input type="hidden" name="keyword" value="@Model.Keyword" />
+            <div class="filter-chip-group">
+                <label class="filter-chip-label">Category</label>
+                <select class="filter-chip-select" name="categoryId" onchange="this.form.submit()">
+                    <option value="">All categories</option>
+                    @foreach (var cat in Model.Categories)
+                    {
+                        <option value="@cat.CategoryID" selected="@(Model.CategoryID == cat.CategoryID)">@cat.CategoryName</option>
+                    }
+                </select>
+            </div>
+            <div class="filter-chip-group">
+                <label class="filter-chip-label">Tag</label>
+                <select class="filter-chip-select" name="tagId" onchange="this.form.submit()">
+                    <option value="">All tags</option>
+                    @foreach (var tag in Model.Tags)
+                    {
+                        <option value="@tag.TagID" selected="@(Model.TagID == tag.TagID)">@tag.TagName</option>
+                    }
+                </select>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.Keyword) || Model.CategoryID.HasValue || Model.TagID.HasValue)
+            {
+                <a class="filter-chip-reset" asp-action="Index">
+                    <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    Clear
+                </a>
+            }
+        </form>
+    </div>
+}
+else
+{
+    <!-- Admin/Staff view header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">News Overview</h1>
+            <p class="page-subtitle">Review every article by workflow state, publish status, and schedule.</p>
+        </div>
+    </div>
+    <form method="get" class="filter-panel">
+        <div>
+            <label class="form-label">Keyword</label>
+            <input name="keyword" value="@Model.Keyword" class="form-control" placeholder="Search title or headline..." />
+        </div>
+        <div>
+            <label class="form-label">Category</label>
+            <select name="categoryId" class="form-select">
+                <option value="">All categories</option>
+                @foreach (var cat in Model.Categories)
+                {
+                    <option value="@cat.CategoryID" selected="@(Model.CategoryID == cat.CategoryID)">@cat.CategoryName</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label class="form-label">Tag</label>
+            <select name="tagId" class="form-select">
+                <option value="">All tags</option>
+                @foreach (var tag in Model.Tags)
+                {
+                    <option value="@tag.TagID" selected="@(Model.TagID == tag.TagID)">@tag.TagName</option>
+                }
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button class="btn btn-primary" type="submit">Search</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+        </div>
+    </form>
+}
+
+@if (Model.IsAdminView)
+{
+    <div class="section-title">
+        <h2 class="h4">All articles</h2>
+        <span>@Model.Articles.Count result(s)</span>
+    </div>
+
+    @if (!Model.Articles.Any())
+    {
+        <div class="empty-state">
+            <h3>No articles found</h3>
+            <p>No news articles match the current filters.</p>
+        </div>
+    }
+    else
+    {
+        <div class="admin-news-list">
+            @foreach (var item in Model.Articles)
+            {
+                var isPublishedNow = item.ArticleStateID == 3 && item.NewsStatus && (!item.ScheduledPublishDate.HasValue || item.ScheduledPublishDate <= DateTime.Now);
+                <a class="admin-news-row" asp-action="Details" asp-route-id="@item.NewsArticleID">
+                    <div class="admin-news-thumb">
+                        @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                        {
+                            <img src="@item.ImageUrl" alt="@item.NewsTitle" />
+                        }
+                        else
+                        {
+                            <span>@(item.NewsTitle?.Length > 0 ? item.NewsTitle[0].ToString().ToUpper() : "N")</span>
+                        }
+                    </div>
+                    <div class="admin-news-main">
+                        <div class="news-meta">
+                            <span>@item.CreatedDate.ToString("dd MMM yyyy")</span>
+                            @if (item.Category != null) { <span class="news-category">@item.Category.CategoryName</span> }
+                            @if (item.CreatedBy != null) { <span>@item.CreatedBy.AccountName</span> }
+                        </div>
+                        <h2 class="article-card-title">@item.NewsTitle</h2>
+                        <p>@item.Headline</p>
+                    </div>
+                    <div class="admin-news-status">
+                        <span class="role-pill @(item.ArticleStateID == 3 ? "role-staff" : item.ArticleStateID == 2 ? "role-admin" : "role-reader")">
+                            @item.ArticleState?.StateName
+                        </span>
+                        <span class="@(isPublishedNow ? "status-active" : "status-inactive")">
+                            @(isPublishedNow ? "Visible" : "Hidden")
+                        </span>
+                        @if (item.ScheduledPublishDate.HasValue)
+                        {
+                            <small>@item.ScheduledPublishDate.Value.ToString("dd MMM HH:mm")</small>
+                        }
+                    </div>
+                </a>
+            }
+        </div>
+    }
+}
+else if (Model.FeaturedArticle == null)
+{
+    <div class="empty-state" style="margin-top:1rem">
+        <div class="empty-state-icon">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <rect x="4" y="4" width="9" height="14" rx="2" stroke="#94a3b8" stroke-width="1.5"/>
+                <rect x="15" y="4" width="9" height="8" rx="2" stroke="#94a3b8" stroke-width="1.5"/>
+                <rect x="4" y="21" width="20" height="3" rx="1.5" stroke="#94a3b8" stroke-width="1.5"/>
+            </svg>
+        </div>
+        <h3>No articles found</h3>
+        <p>There are no active news articles matching the current filters.</p>
+    </div>
+}
+else
+{
+    <!-- Featured article -->
+    <a class="featured-news news-card-link" asp-action="Details" asp-route-id="@Model.FeaturedArticle.NewsArticleID">
+        @if (!string.IsNullOrWhiteSpace(Model.FeaturedArticle.ImageUrl))
+        {
+            <img src="@Model.FeaturedArticle.ImageUrl" alt="@Model.FeaturedArticle.NewsTitle" class="featured-image"
+                 onerror="this.onerror=null;this.src='/images/news-placeholder.svg'" />
+        }
+        else
+        {
+            <img src="/images/news-placeholder.svg" alt="No image" class="featured-image" />
+        }
+        <div class="featured-body">
+            <div class="featured-kicker">@(Model.FeaturedArticle.Category?.CategoryName ?? "Featured")</div>
+            <h2>@Model.FeaturedArticle.NewsTitle</h2>
+            <p>@Model.FeaturedArticle.Headline</p>
+            <div class="news-meta">
+                @if (Model.FeaturedArticle.CreatedBy != null)
+                {
+                    <span>@Model.FeaturedArticle.CreatedBy.AccountName</span>
+                }
+                <span>@Model.FeaturedArticle.CreatedDate.ToString("dd MMM yyyy")</span>
+            </div>
+        </div>
+    </a>
+
+    @if (Model.Articles.Any())
+    {
+        <div class="section-title" style="margin-top:2rem">
+            <h2>Latest articles</h2>
+            <span>@Model.Articles.Count more</span>
+        </div>
+
+        <div class="news-grid">
+            @foreach (var item in Model.Articles)
+            {
+                <a class="news-article news-card-link" asp-action="Details" asp-route-id="@item.NewsArticleID">
+                    @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                    {
+                        <img src="@item.ImageUrl" alt="@item.NewsTitle" class="article-card-image"
+                             onerror="this.onerror=null;this.src='/images/news-placeholder.svg'" />
+                    }
+                    else
+                    {
+                        <img src="/images/news-placeholder.svg" alt="No image" class="article-card-image" />
+                    }
+                    <div class="news-article-body">
+                        <div class="news-meta">
+                            @if (item.Category != null) { <span class="news-category">@item.Category.CategoryName</span> }
+                            <span>@item.CreatedDate.ToString("dd MMM")</span>
+                        </div>
+                        <h2 class="article-card-title">@item.NewsTitle</h2>
+                        <p class="news-headline">@item.Headline</p>
+                        @if (item.NewsTags.Any())
+                        {
+                            <div class="tag-row">
+                                @foreach (var tag in item.NewsTags.Select(nt => nt.Tag?.TagName).Where(t => t != null).Take(3))
+                                {
+                                    <span class="badge text-bg-secondary">#@tag</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </a>
+            }
+        </div>
+    }
+}

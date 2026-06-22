@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="FUNews Management System — Manage, review, and publish university news." />
+    <title>@ViewData["Title"] — FUNews</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/NguyenCongNhatMVC.styles.css" asp-append-version="true" />
+</head>
+<body>
+@{
+    var currentUser = Context.Session.GetUser();
+    var p = Context.Request.Path.ToString().ToLower();
+    int unreadCount = 0;
+    var navNotifications = new List<Notification>();
+    if (currentUser != null && currentUser.AccountID > 0)
+    {
+        var notifSvc = Context.RequestServices.GetService<NguyenCongNhatMVC.Services.INotificationService>();
+        if (notifSvc != null)
+        {
+            unreadCount = await notifSvc.UnreadCountAsync(currentUser.AccountID);
+            navNotifications = await notifSvc.GetForUserAsync(currentUser.AccountID, 8);
+        }
+    }
+}
+<header>
+    <nav class="navbar navbar-expand-md">
+        <div class="container-fluid px-4">
+
+            @* Brand *@
+            <a class="navbar-brand" asp-controller="News" asp-action="Index">
+                <span class="navbar-brand-logo" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <rect x="2" y="2" width="5" height="7" rx="1" fill="white" fill-opacity=".9"/>
+                        <rect x="9" y="2" width="5" height="4" rx="1" fill="white" fill-opacity=".9"/>
+                        <rect x="2" y="11" width="12" height="2" rx="1" fill="white" fill-opacity=".6"/>
+                        <rect x="9" y="8" width="5" height="3" rx="1" fill="white" fill-opacity=".6"/>
+                    </svg>
+                </span>
+                FUNews
+            </a>
+
+            <button class="navbar-toggler border-0" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#mainNav"
+                    aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav me-auto gap-1 mt-2 mt-md-0">
+
+                    <li class="nav-item">
+                        <a class="nav-link @(p == "/" || p.StartsWith("/news/index") || p.StartsWith("/news/details") ? "active" : "")"
+                           asp-controller="News" asp-action="Index">News</a>
+                    </li>
+
+                    @if (currentUser?.Role is "Admin" or "Staff")
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(p.StartsWith("/dashboard") ? "active" : "")"
+                               asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                        </li>
+                    }
+
+                    @if (currentUser?.Role == "Admin")
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(p.StartsWith("/accounts/index") ? "active" : "")"
+                               asp-controller="Accounts" asp-action="Index">Accounts</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(p.StartsWith("/accounts/report") ? "active" : "")"
+                               asp-controller="Accounts" asp-action="Report">Report</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(p.StartsWith("/auditlogs") ? "active" : "")"
+                               asp-controller="AuditLogs" asp-action="Index">Audit Logs</a>
+                        </li>
+                    }
+
+                    @if (currentUser?.Role == "Staff")
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(p.StartsWith("/categories") ? "active" : "")"
+                               asp-controller="Categories" asp-action="Index">Categories</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(p.StartsWith("/tags") ? "active" : "")"
+                               asp-controller="Tags" asp-action="Index">Tags</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(p.StartsWith("/news/manage") ? "active" : "")"
+                               asp-controller="News" asp-action="Manage">Articles</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(p.StartsWith("/news/history") ? "active" : "")"
+                               asp-controller="News" asp-action="History">History</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(p.StartsWith("/news/drafts") ? "active" : "")"
+                               asp-controller="News" asp-action="Drafts">Drafts</a>
+                        </li>
+                    }
+                </ul>
+
+                <ul class="navbar-nav align-items-center gap-2 mt-2 mt-md-0">
+                    @if (currentUser == null)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Auth" asp-action="Login">Sign in</a>
+                        </li>
+                    }
+                    else
+                    {
+                        @* Library link (all logged-in users) *@
+                        <li class="nav-item">
+                            <a class="nav-link @(p.StartsWith("/news/library") ? "active" : "")"
+                               asp-controller="News" asp-action="Library">
+                                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style="margin-right:.2rem">
+                                    <path d="M3.5 2.5h8a.5.5 0 01.5.5v9.5l-4-2.5-4 2.5V3a.5.5 0 01-.5-.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                                </svg>
+                                Library
+                            </a>
+                        </li>
+
+                        @if (currentUser.AccountID > 0)
+                        {
+                            <li class="nav-item notif-dropdown-wrap">
+                                <button class="nav-bell @(unreadCount > 0 ? "has-badge" : "")"
+                                        id="notif-bell" type="button"
+                                        aria-expanded="false" aria-haspopup="true"
+                                        title="Notifications">
+                                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                        <path d="M9 2.5A5.5 5.5 0 003.5 8v4.5l-1 1.5h13l-1-1.5V8A5.5 5.5 0 009 2.5z"
+                                              stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+                                        <path d="M7 14a2 2 0 004 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                                    </svg>
+                                    @if (unreadCount > 0)
+                                    {
+                                        <span class="nav-bell-badge" id="notif-badge">@(unreadCount > 9 ? "9+" : unreadCount.ToString())</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="nav-bell-badge" id="notif-badge" style="display:none"></span>
+                                    }
+                                </button>
+
+                                <div class="notif-panel" id="notif-panel" aria-label="Notifications">
+                                    <div class="notif-panel-head">
+                                        <span class="notif-panel-title">Notifications</span>
+                                        <button class="notif-mark-all" id="notif-mark-all">Mark all read</button>
+                                    </div>
+                                    <div class="notif-panel-body" id="notif-body">
+                                        <div class="notif-loading"><span class="notif-spinner"></span></div>
+                                    </div>
+                                    <div class="notif-panel-foot">
+                                        <a class="notif-see-all" asp-controller="Notifications" asp-action="Index">See all notifications</a>
+                                    </div>
+                                </div>
+                            </li>
+                        }
+                        <li class="nav-item dropdown">
+                            <button class="user-menu-toggle btn" id="userMenuBtn"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="nav-user-avatar">
+                                    @if (!string.IsNullOrWhiteSpace(currentUser.AvatarUrl))
+                                    {
+                                        <img src="@currentUser.AvatarUrl" alt="@currentUser.Name" />
+                                    }
+                                    else
+                                    {
+                                        @(currentUser.Name?.Length > 0 ? currentUser.Name[0].ToString().ToUpper() : "A")
+                                    }
+                                </span>
+                                <span class="nav-user-copy">
+                                    <strong>@currentUser.Name</strong>
+                                    <small>@currentUser.Role</small>
+                                </span>
+                                <span class="nav-user-caret" aria-hidden="true"></span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end user-dropdown" aria-labelledby="userMenuBtn">
+                                @if (currentUser.AccountID > 0)
+                                {
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
+                                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="margin-right:.4rem">
+                                                <circle cx="7" cy="5" r="2.5" stroke="currentColor" stroke-width="1.3"/>
+                                                <path d="M2 12c0-2.2 2.2-4 5-4s5 1.8 5 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                                            </svg>
+                                            Profile
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                }
+                                else
+                                {
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="AuditLogs" asp-action="Index">
+                                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="margin-right:.4rem">
+                                                <rect x="2" y="2" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+                                                <path d="M4.5 5h5M4.5 7h5M4.5 9h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                                            </svg>
+                                            Audit Logs
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                }
+                                <li>
+                                    <a class="dropdown-item text-danger" asp-controller="Auth" asp-action="Logout">
+                                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="margin-right:.4rem">
+                                            <path d="M5 7h6M9 5l2 2-2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M8 3H3a1 1 0 00-1 1v6a1 1 0 001 1h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                                        </svg>
+                                        Sign out
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+        </div>
+    </nav>
+</header>
+
+<div class="container px-4">
+    <main role="main" class="pb-3">
+        @RenderBody()
+    </main>
+</div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-inner d-flex justify-content-center align-items-center flex-wrap">
+                <a class="footer-brand d-flex align-items-center me-2" asp-controller="News" asp-action="Index" style="text-decoration: none; color: inherit;">
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" class="me-1">
+                        <rect x="2" y="2" width="5" height="7" rx="1" fill="currentColor" fill-opacity=".7" />
+                        <rect x="9" y="2" width="5" height="4" rx="1" fill="currentColor" fill-opacity=".7" />
+                        <rect x="2" y="11" width="12" height="2" rx="1" fill="currentColor" fill-opacity=".4" />
+                        <rect x="9" y="8" width="5" height="3" rx="1" fill="currentColor" fill-opacity=".4" />
+                    </svg>
+                    FUNews
+                </a>
+                <span class="footer-sep mx-2">·</span>
+                <span>&copy; 2026 FU News Management System</span>
+                <span class="footer-sep mx-2">·</span>
+                <span>PRN222 Assignment 01</span>
+            </div>
+        </div>
+    </footer>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+
+<script>
+(function () {
+    const bell    = document.getElementById('notif-bell');
+    const panel   = document.getElementById('notif-panel');
+    const body    = document.getElementById('notif-body');
+    const badge   = document.getElementById('notif-badge');
+    const markAll = document.getElementById('notif-mark-all');
+    if (!bell || !panel) return;
+
+    let loaded = false;
+
+    const typeIcon = { Like: '❤️', Bookmark: '🔖', Comment: '💬', Reply: '↩️' };
+
+    function openPanel() {
+        panel.classList.add('is-open');
+        bell.setAttribute('aria-expanded', 'true');
+        if (!loaded) fetchFeed();
+    }
+    function closePanel() {
+        panel.classList.remove('is-open');
+        bell.setAttribute('aria-expanded', 'false');
+    }
+
+    bell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        panel.classList.contains('is-open') ? closePanel() : openPanel();
+    });
+    document.addEventListener('click', (e) => {
+        if (!panel.contains(e.target)) closePanel();
+    });
+
+    async function fetchFeed() {
+        try {
+            const res  = await fetch('/Notifications/Feed', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await res.json();
+            loaded = true;
+            renderItems(data.items, data.unread);
+        } catch {
+            body.innerHTML = '<p class="notif-empty-small">Could not load notifications.</p>';
+        }
+    }
+
+    function renderItems(items, unread) {
+        if (!items.length) {
+            body.innerHTML = '<p class="notif-empty-small">No notifications yet</p>';
+            return;
+        }
+        body.innerHTML = items.map(n => `
+            <a class="notif-panel-item ${n.isRead ? '' : 'is-unread'}" href="/Notifications/Open/${n.id}">
+                <span class="notif-panel-icon">${typeIcon[n.type] || '🔔'}</span>
+                <span class="notif-panel-body">
+                    <span class="notif-panel-actor">${esc(n.actor)}</span>
+                    <span class="notif-panel-action">${actionText(n.type)}</span>
+                    <span class="notif-panel-article">${esc(n.articleTitle)}</span>
+                    ${n.excerpt ? `<span class="notif-panel-excerpt">&quot;${esc(n.excerpt)}&quot;</span>` : ''}
+                    <span class="notif-panel-time">${n.createdAt}</span>
+                </span>
+                ${n.isRead ? '' : '<span class="notif-blue-dot"></span>'}
+            </a>`).join('');
+
+        if (badge) {
+            if (unread > 0) { badge.textContent = unread > 9 ? '9+' : unread; badge.style.display = ''; }
+            else badge.style.display = 'none';
+        }
+    }
+
+    function actionText(t) {
+        return { Like: 'liked', Bookmark: 'bookmarked', Comment: 'commented on', Reply: 'replied on' }[t] || 'interacted with';
+    }
+    function esc(s) {
+        return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    markAll?.addEventListener('click', async () => {
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+            await fetch('/Notifications/MarkAllRead', { method: 'POST', headers: { 'RequestVerificationToken': token } });
+        } catch {}
+        body.querySelectorAll('.notif-panel-item.is-unread').forEach(el => el.classList.remove('is-unread'));
+        body.querySelectorAll('.notif-blue-dot').forEach(el => el.remove());
+        if (badge) badge.style.display = 'none';
+        bell.classList.remove('has-badge');
+    });
+})();
+</script>
+<!-- ═══════════════ CUSTOM CONFIRM MODAL ═══════════════ -->
+<div id="fu-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="fu-modal-title-text">
+  <div class="fu-modal-box">
+    <div class="fu-modal-icon fu-modal-icon--danger"></div>
+    <div>
+      <p class="fu-modal-title" id="fu-modal-title-text">Confirm action</p>
+      <p class="fu-modal-message"></p>
+    </div>
+    <div class="fu-modal-actions">
+      <button class="fu-modal-cancel" type="button">Cancel</button>
+      <button class="fu-modal-ok btn btn-danger" type="button">Confirm</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

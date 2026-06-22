@@ -1,0 +1,80 @@
+@model ReportViewModel
+@{
+    ViewData["Title"] = "Report";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">News Report</h1>
+        <p class="page-subtitle">Filter by created date and export data for submission evidence.</p>
+    </div>
+    <a class="btn btn-outline-primary" asp-action="ExportReport" asp-route-startDate="@Model.StartDate?.ToString("yyyy-MM-dd")" asp-route-endDate="@Model.EndDate?.ToString("yyyy-MM-dd")">Export CSV</a>
+</div>
+
+<div class="report-filter">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label asp-for="StartDate" class="form-label">Start Date</label>
+            <input asp-for="StartDate" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label asp-for="EndDate" class="form-label">End Date</label>
+            <input asp-for="EndDate" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100" type="submit">Generate</button>
+        </div>
+    </form>
+</div>
+
+@if (Model.Articles.Any())
+{
+    <div class="result-note">
+        Found <strong>@Model.Articles.Count()</strong> article(s) in the selected period
+    </div>
+}
+
+<div class="table-container">
+    <table class="table table-striped align-middle mb-0">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Created By</th>
+                <th>Created Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Articles.Any())
+            {
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        <p>No articles found for the selected date range.</p>
+                    </td>
+                </tr>
+            }
+            @foreach (var item in Model.Articles)
+            {
+                <tr>
+                    <td class="strong-cell clipped-cell">
+                        <span>@item.NewsTitle</span>
+                    </td>
+                    <td class="news-category">@item.Category?.CategoryName</td>
+                    <td class="muted-cell">@item.CreatedBy?.AccountName</td>
+                    <td class="muted-cell">@item.CreatedDate.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>
+                        @if (item.NewsStatus)
+                        {
+                            <span class="status-active">Active</span>
+                        }
+                        else
+                        {
+                            <span class="status-inactive">Inactive</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

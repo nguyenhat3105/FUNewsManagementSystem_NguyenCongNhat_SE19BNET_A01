@@ -1,0 +1,155 @@
+@model SystemAccount
+@{
+    ViewData["Title"] = "Profile";
+    var avatar = string.IsNullOrWhiteSpace(Model.AvatarUrl) ? null : Model.AvatarUrl;
+}
+
+<partial name="_Alerts" />
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">My Profile</h1>
+        <p class="page-subtitle">Update personal information, avatar, and password.</p>
+    </div>
+</div>
+
+<div class="profile-layout">
+    <aside class="profile-summary">
+        <button type="button" class="avatar-button" id="avatarPicker" aria-label="Change avatar">
+            <span id="avatarPreview">
+                @if (avatar != null)
+                {
+                    <img src="@avatar" alt="@Model.AccountName avatar" class="profile-avatar-lg" />
+                }
+                else
+                {
+                    <span class="profile-avatar-lg avatar-fallback">
+                        @(Model.AccountName?.Length > 0 ? Model.AccountName[0].ToString().ToUpper() : "?")
+                    </span>
+                }
+            </span>
+            <span class="avatar-change">Change</span>
+        </button>
+        <h2>@Model.AccountName</h2>
+        <p>@Model.AccountEmail</p>
+        <span class="badge text-bg-secondary">@Model.RoleName</span>
+        @if (!string.IsNullOrWhiteSpace(Model.Bio))
+        {
+            <div class="profile-bio">@Model.Bio</div>
+        }
+    </aside>
+
+    <div class="profile-card">
+        <form method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="AccountID" />
+            <input type="hidden" asp-for="AccountRole" />
+            <input type="hidden" asp-for="AccountPassword" />
+            <input type="file" name="avatarFile" id="AvatarFile" class="visually-hidden" accept="image/*" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="AccountName" class="form-label">Full Name</label>
+                    <input asp-for="AccountName" class="form-control" placeholder="Enter your full name" />
+                    <span asp-validation-for="AccountName" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="AccountEmail" class="form-label">Email Address</label>
+                    <input asp-for="AccountEmail" class="form-control" placeholder="your@email.com" />
+                    <span asp-validation-for="AccountEmail" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
+                    <input asp-for="PhoneNumber" class="form-control" placeholder="Optional phone number" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="AvatarUrl" class="form-label">Avatar URL</label>
+                    <input asp-for="AvatarUrl" class="form-control" placeholder="https://example.com/avatar.jpg" />
+                    <div class="form-text" id="avatarHelp">Click the avatar preview to choose an image, or paste an image URL.</div>
+                    <span asp-validation-for="AvatarUrl" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-12">
+                    <label asp-for="Bio" class="form-label">Bio</label>
+                    <textarea asp-for="Bio" class="form-control" rows="4" placeholder="Short personal introduction"></textarea>
+                    <span asp-validation-for="Bio" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-12">
+                    <label for="NewPassword" class="form-label">New Password</label>
+                    <input name="newPassword" id="NewPassword" class="form-control" type="password" placeholder="Leave blank to keep current password" minlength="6" />
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button class="btn btn-primary" type="submit">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const avatarPicker = document.getElementById('avatarPicker');
+        const avatarInput = document.getElementById('AvatarUrl');
+        const avatarFile = document.getElementById('AvatarFile');
+        const avatarPreview = document.getElementById('avatarPreview');
+        const avatarHelp = document.getElementById('avatarHelp');
+        const fallbackLetter = '@(Model.AccountName?.Length > 0 ? Model.AccountName[0].ToString().ToUpper() : "?")';
+        let previewObjectUrl = null;
+
+        function renderAvatar(url) {
+            const cleanUrl = (url || '').trim();
+            avatarPreview.replaceChildren();
+
+            if (cleanUrl.length > 0) {
+                const image = document.createElement('img');
+                image.src = cleanUrl;
+                image.alt = 'Profile avatar';
+                image.className = 'profile-avatar-lg';
+                avatarPreview.appendChild(image);
+                return;
+            }
+
+            const fallback = document.createElement('span');
+            fallback.className = 'profile-avatar-lg avatar-fallback';
+            fallback.textContent = fallbackLetter;
+            avatarPreview.appendChild(fallback);
+        }
+
+        avatarPicker?.addEventListener('click', () => {
+            avatarFile?.click();
+        });
+
+        avatarFile?.addEventListener('change', () => {
+            const file = avatarFile.files?.[0];
+            if (!file) {
+                return;
+            }
+
+            if (previewObjectUrl) {
+                URL.revokeObjectURL(previewObjectUrl);
+            }
+
+            previewObjectUrl = URL.createObjectURL(file);
+            renderAvatar(previewObjectUrl);
+            avatarHelp.textContent = `${file.name} selected. Save changes to upload this avatar.`;
+        });
+
+        avatarInput?.addEventListener('input', () => {
+            if (previewObjectUrl) {
+                URL.revokeObjectURL(previewObjectUrl);
+                previewObjectUrl = null;
+            }
+
+            avatarFile.value = '';
+            avatarHelp.textContent = 'Click the avatar preview to choose an image, or paste an image URL.';
+            renderAvatar(avatarInput.value);
+        });
+    </script>
+}

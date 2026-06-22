@@ -1,0 +1,403 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Sign in";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign in — FUNews</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        html, body { margin: 0; padding: 0; min-height: 100vh; overflow: hidden; }
+
+        /* ── Shell ── */
+        .auth-shell {
+            display: grid;
+            grid-template-columns: 1fr 480px;
+            min-height: 100vh; width: 100%;
+        }
+        @@media (max-width: 900px) {
+            .auth-shell { grid-template-columns: 1fr; }
+            .auth-panel  { display: none; }
+        }
+
+        /* ── Left editorial panel ── */
+        .auth-panel {
+            background: #0f172a;
+            position: relative; overflow: hidden;
+            display: flex; flex-direction: column;
+            justify-content: flex-end; padding: 3rem;
+        }
+        .auth-panel-bg {
+            position: absolute; inset: 0;
+            background: radial-gradient(ellipse 80% 60% at 30% 40%, #1e3a8a 0%, transparent 70%),
+                        radial-gradient(ellipse 50% 50% at 70% 70%, #1d4ed8 0%, transparent 60%);
+            opacity: .6;
+        }
+        .auth-panel-grid {
+            position: absolute; inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Floating stats */
+        .auth-float-stats {
+            position: absolute; top: 5.5rem; right: 2.5rem; z-index: 3;
+            display: flex; flex-direction: column; gap: .5rem;
+        }
+        .auth-stat-chip {
+            display: flex; align-items: center; gap: .5rem;
+            background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+            backdrop-filter: blur(12px); border-radius: 999px;
+            padding: .375rem .875rem .375rem .5rem;
+            font-size: .75rem; color: rgba(255,255,255,.8);
+            animation: floatChip 3.5s ease-in-out infinite alternate;
+        }
+        .auth-stat-chip:nth-child(2) { animation-delay: .6s; }
+        .auth-stat-chip strong { color: #fff; font-weight: 700; }
+        .auth-stat-icon { font-size: 1rem; }
+        @@keyframes floatChip {
+            from { transform: translateY(0); }
+            to   { transform: translateY(-5px); }
+        }
+
+        /* News cards stack */
+        .auth-cards-stack {
+            position: relative; z-index: 2; flex: 1;
+            display: flex; align-items: center; justify-content: center;
+            perspective: 900px; padding: 2rem 0 1rem;
+        }
+        .auth-news-card {
+            position: absolute; width: 88%; max-width: 340px;
+            background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+            backdrop-filter: blur(16px); border-radius: 14px;
+            padding: 1rem 1.125rem; color: rgba(255,255,255,.9);
+        }
+        .auth-news-card--back  { transform: rotate(-6deg) translateY(24px) scale(.88); opacity: .45; z-index: 0; }
+        .auth-news-card--mid   { transform: rotate(3deg) translateY(12px) scale(.94); opacity: .65; z-index: 1; }
+        .auth-news-card--front {
+            transform: rotate(-1.5deg) translateY(0) scale(1); opacity: 1; z-index: 2;
+            padding: 0; overflow: hidden;
+            animation: cardFloat 4s ease-in-out infinite alternate;
+        }
+        @@keyframes cardFloat {
+            from { transform: rotate(-1.5deg) translateY(0); }
+            to   { transform: rotate(-1.5deg) translateY(-8px); }
+        }
+        .auth-card-img-placeholder {
+            height: 120px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #6366f1 100%);
+            border-radius: 14px 14px 0 0; position: relative; overflow: hidden;
+        }
+        .auth-card-img-placeholder::after {
+            content: '📸'; position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; opacity: .3;
+        }
+        .auth-card-content { padding: .875rem 1rem 1rem; }
+        .auth-card-kicker {
+            font-size: .625rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .1em; color: #93c5fd; margin-bottom: .375rem;
+        }
+        .auth-card-title {
+            font-size: .875rem; font-weight: 700; line-height: 1.4;
+            color: rgba(255,255,255,.95); margin-bottom: .625rem;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .auth-news-card--back .auth-card-title,
+        .auth-news-card--mid  .auth-card-title { font-size: .8125rem; margin-bottom: .5rem; }
+        .auth-card-meta {
+            display: flex; align-items: center; gap: .5rem;
+            font-size: .6875rem; color: rgba(255,255,255,.5);
+        }
+        .auth-card-avatar {
+            width: 20px; height: 20px; border-radius: 50%;
+            background: #3b82f6; color: white;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: .625rem; font-weight: 700; flex-shrink: 0;
+        }
+        .auth-card-reactions { margin-left: auto; color: rgba(255,255,255,.4); }
+
+        /* Logo */
+        .auth-panel-logo {
+            position: absolute; top: 2.5rem; left: 3rem; z-index: 2;
+            display: flex; align-items: center; gap: .625rem; text-decoration: none;
+        }
+        .auth-panel-logo-mark {
+            width: 32px; height: 32px; background: #1d4ed8; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .auth-panel-logo span { font-size: .9375rem; font-weight: 700; color: white; letter-spacing: -.02em; }
+
+        /* Quote */
+        .auth-panel-tagline {
+            position: relative; z-index: 2;
+            font-size: .75rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: .1em; color: rgba(255,255,255,.35); margin-bottom: .625rem;
+        }
+        .auth-panel-quote { position: relative; z-index: 2; margin-bottom: 1.5rem; }
+        .auth-panel-quote blockquote {
+            font-family: Georgia, serif; font-style: italic;
+            font-size: 1.125rem; line-height: 1.55; color: rgba(255,255,255,.88);
+            border-left: 2.5px solid #3b82f6; padding-left: 1rem; margin: 0 0 .625rem;
+        }
+        .auth-panel-quote cite { font-size: .75rem; color: rgba(255,255,255,.4); font-style: normal; padding-left: 1rem; }
+        .auth-panel-dots { position: relative; z-index: 2; display: flex; gap: .4rem; }
+        .auth-panel-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.2); }
+        .auth-panel-dot.active { background: #6366f1; width: 20px; border-radius: 3px; }
+
+        /* ── Right form panel ── */
+        .auth-form-panel {
+            background: #ffffff; display: flex; flex-direction: column;
+            justify-content: center; padding: 3rem 2.5rem; position: relative;
+        }
+        .auth-form-inner { max-width: 360px; width: 100%; margin: 0 auto; }
+
+        .auth-logo-mobile {
+            display: none; align-items: center; gap: .5rem;
+            margin-bottom: 2rem; text-decoration: none;
+        }
+        @@media (max-width: 900px) { .auth-logo-mobile { display: flex; } }
+        .auth-logo-mobile-mark {
+            width: 28px; height: 28px; background: #1d4ed8; border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .auth-logo-mobile span { font-size: .875rem; font-weight: 700; color: #0f172a; }
+
+        .auth-heading { margin: 0 0 .375rem; font-size: 1.5rem; font-weight: 800; letter-spacing: -.03em; color: #0f172a; }
+        .auth-subheading { font-size: .875rem; color: #64748b; margin: 0 0 2rem; }
+
+        .auth-field { margin-bottom: 1.25rem; }
+        .auth-label { display: block; font-size: .8125rem; font-weight: 600; color: #0f172a; margin-bottom: .375rem; }
+        .auth-input {
+            width: 100%; padding: .625rem .875rem;
+            background: #f8fafc; border: 1.5px solid #e2e8f0;
+            border-radius: 8px; font-size: .9375rem; color: #0f172a;
+            font-family: inherit; transition: border-color .15s, box-shadow .15s;
+            outline: none; box-sizing: border-box;
+        }
+        .auth-input::placeholder { color: #94a3b8; }
+        .auth-input:focus { border-color: #1d4ed8; background: #fff; box-shadow: 0 0 0 3px rgba(29,78,216,.12); }
+
+        .auth-btn {
+            width: 100%; padding: .6875rem 1rem;
+            background: #1d4ed8; color: white; border: none;
+            border-radius: 8px; font-size: .9375rem; font-weight: 600;
+            font-family: inherit; cursor: pointer;
+            transition: background .15s, transform .1s; margin-bottom: .75rem;
+        }
+        .auth-btn:hover { background: #1e40af; }
+        .auth-btn:active { transform: scale(.99); }
+        .auth-btn-ghost {
+            width: 100%; padding: .6875rem 1rem;
+            background: transparent; color: #64748b; border: 1.5px solid #e2e8f0;
+            border-radius: 8px; font-size: .875rem; font-weight: 600;
+            font-family: inherit; cursor: pointer; transition: border-color .15s, color .15s, background .15s;
+        }
+        .auth-btn-ghost:hover { border-color: #cbd5e1; color: #0f172a; background: #f8fafc; }
+
+        .auth-error {
+            background: #fef2f2; border: 1px solid #fecaca;
+            border-radius: 8px; padding: .75rem 1rem;
+            font-size: .8125rem; color: #991b1b; margin-bottom: 1.25rem;
+            display: flex; gap: .5rem; align-items: flex-start;
+        }
+        .auth-error-icon { flex-shrink: 0; margin-top: .0625rem; }
+        .field-error-inline { font-size: .75rem; color: #dc2626; margin-top: .3rem; display: block; }
+
+        .auth-demo {
+            background: #f8fafc; border: 1px solid #e2e8f0;
+            border-radius: 8px; padding: .875rem 1rem; margin-top: 1.5rem;
+        }
+        .auth-demo-title {
+            font-size: .6875rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .08em; color: #94a3b8; margin-bottom: .625rem;
+        }
+        .auth-demo-row { display: flex; justify-content: space-between; align-items: center; font-size: .8125rem; margin-bottom: .25rem; }
+        .auth-demo-row:last-child { margin-bottom: 0; }
+        .auth-demo-label { color: #64748b; }
+        .auth-demo-value { font-family: monospace; color: #1d4ed8; font-size: .75rem; background: #eff6ff; padding: .1em .4em; border-radius: 4px; }
+
+        .auth-switch-text { text-align: center; margin-top: 1.25rem; font-size: .8125rem; color: #64748b; }
+        .auth-switch-text a { color: #1d4ed8; font-weight: 600; text-decoration: none; }
+        .auth-switch-text a:hover { text-decoration: underline; }
+
+        .auth-footer {
+            position: absolute; bottom: 1.5rem; left: 0; right: 0;
+            text-align: center; font-size: .75rem; color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+<div class="auth-shell">
+    <!-- Left editorial panel -->
+    <div class="auth-panel">
+        <div class="auth-panel-bg"></div>
+        <div class="auth-panel-grid"></div>
+
+        <!-- Floating stats -->
+        <div class="auth-float-stats">
+            <div class="auth-stat-chip">
+                <span class="auth-stat-icon">📰</span>
+                <span><strong>1,240+</strong> articles</span>
+            </div>
+            <div class="auth-stat-chip">
+                <span class="auth-stat-icon">👥</span>
+                <span><strong>320</strong> writers</span>
+            </div>
+        </div>
+
+        <a class="auth-panel-logo" asp-controller="News" asp-action="Index">
+            <div class="auth-panel-logo-mark">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <rect x="2" y="2" width="6" height="9" rx="1.5" fill="white" fill-opacity=".95"/>
+                    <rect x="10" y="2" width="6" height="5" rx="1.5" fill="white" fill-opacity=".95"/>
+                    <rect x="2" y="13" width="14" height="3" rx="1.5" fill="white" fill-opacity=".6"/>
+                    <rect x="10" y="9" width="6" height="3" rx="1.5" fill="white" fill-opacity=".6"/>
+                </svg>
+            </div>
+            <span>FUNews</span>
+        </a>
+
+        <!-- News cards stack -->
+        <div class="auth-cards-stack">
+            <div class="auth-news-card auth-news-card--back">
+                <div class="auth-card-kicker">Campus Life</div>
+                <div class="auth-card-title">International Exchange Programs Open for Applications This Fall</div>
+                <div class="auth-card-meta">
+                    <span class="auth-card-avatar">K</span>
+                    <span>Khanh Ly · 2h ago</span>
+                </div>
+            </div>
+            <div class="auth-news-card auth-news-card--mid">
+                <div class="auth-card-kicker">Research</div>
+                <div class="auth-card-title">FPT University Launches AI Research Lab in Partnership with Google</div>
+                <div class="auth-card-meta">
+                    <span class="auth-card-avatar">M</span>
+                    <span>Minh Duc · 4h ago</span>
+                </div>
+            </div>
+            <div class="auth-news-card auth-news-card--front">
+                <div class="auth-card-img-placeholder"></div>
+                <div class="auth-card-content">
+                    <div class="auth-card-kicker">Technology</div>
+                    <div class="auth-card-title">Students Win National Hackathon with Smart Campus Solution</div>
+                    <div class="auth-card-meta">
+                        <span class="auth-card-avatar">T</span>
+                        <span>Tuan Anh · 1h ago</span>
+                        <span class="auth-card-reactions">❤️ 48 · 💬 12</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="auth-panel-tagline">FU News Management System</div>
+        <div class="auth-panel-quote">
+            <blockquote>"The news is the first rough draft of history."</blockquote>
+            <cite>— Philip L. Graham</cite>
+        </div>
+        <div class="auth-panel-dots">
+            <div class="auth-panel-dot active"></div>
+            <div class="auth-panel-dot"></div>
+            <div class="auth-panel-dot"></div>
+        </div>
+    </div>
+
+    <!-- Right form -->
+    <div class="auth-form-panel">
+        <div class="auth-form-inner">
+            <a class="auth-logo-mobile" asp-controller="News" asp-action="Index">
+                <div class="auth-logo-mobile-mark">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <rect x="2" y="2" width="5" height="7" rx="1" fill="white"/>
+                        <rect x="9" y="2" width="5" height="4" rx="1" fill="white"/>
+                        <rect x="2" y="11" width="12" height="2" rx="1" fill="white" fill-opacity=".7"/>
+                    </svg>
+                </div>
+                <span>FUNews</span>
+            </a>
+
+            <h1 class="auth-heading">Welcome back</h1>
+            <p class="auth-subheading">Sign in to your FUNews account</p>
+
+            <form asp-action="Login" method="post" id="login-form" novalidate>
+                @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+                {
+                    <div class="auth-error">
+                        <svg class="auth-error-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <circle cx="8" cy="8" r="7" stroke="#dc2626" stroke-width="1.5"/>
+                            <path d="M8 5v3.5M8 10.5v.5" stroke="#dc2626" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span>
+                            @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            { @err.ErrorMessage }
+                        </span>
+                    </div>
+                }
+
+                <div class="auth-field">
+                    <label asp-for="Email" class="auth-label">Email address</label>
+                    <input asp-for="Email" class="auth-input" placeholder="you@example.com"
+                           autocomplete="email" inputmode="email" id="Email" />
+                    <span asp-validation-for="Email" class="field-error-inline"></span>
+                </div>
+
+                <div class="auth-field">
+                    <label asp-for="Password" class="auth-label">Password</label>
+                    <div style="position:relative">
+                        <input asp-for="Password" class="auth-input" placeholder="Your password"
+                               autocomplete="current-password" id="Password" style="padding-right:2.75rem" />
+                        <button type="button" id="pwd-toggle"
+                                style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;padding:0;cursor:pointer;color:#94a3b8;display:flex">
+                            <svg id="eye-icon" width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                <path d="M1 9s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z" stroke="currentColor" stroke-width="1.5"/>
+                                <circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="field-error-inline"></span>
+                </div>
+
+                <button class="auth-btn" type="submit" id="login-btn">Sign in</button>
+                <button class="auth-btn-ghost" type="button" id="admin-demo-btn">Fill demo credentials</button>
+            </form>
+
+
+
+            <div class="auth-switch-text">
+                Don't have an account? <a asp-action="Register" asp-controller="Auth">Create one free</a>
+            </div>
+        </div>
+
+        <div class="auth-footer">&copy; 2026 FU News Management System</div>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<partial name="_ValidationScriptsPartial" />
+<script>
+    document.getElementById('admin-demo-btn')?.addEventListener('click', function () {
+        document.getElementById('Email').value = 'admin@FUNewsManagementSystem.org';
+        document.getElementById('Password').value = '@("@@abc123@@")';
+    });
+    const pwdInput  = document.getElementById('Password');
+    const pwdToggle = document.getElementById('pwd-toggle');
+    const eyeIcon   = document.getElementById('eye-icon');
+    pwdToggle?.addEventListener('click', () => {
+        const isText = pwdInput.type === 'text';
+        pwdInput.type = isText ? 'password' : 'text';
+        eyeIcon.innerHTML = isText
+            ? '<path d="M1 9s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/>'
+            : '<path d="M1 9s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M2 2l14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>';
+    });
+</script>
+</body>
+</html>

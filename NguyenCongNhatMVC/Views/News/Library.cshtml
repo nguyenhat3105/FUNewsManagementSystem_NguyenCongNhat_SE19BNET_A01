@@ -1,0 +1,150 @@
+@model NguyenCongNhatMVC.Models.ViewModels.NewsLibraryViewModel
+@{
+    ViewData["Title"] = "Library";
+    var tab = Context.Request.Query["tab"].ToString();
+    if (string.IsNullOrEmpty(tab)) tab = Model.IsStaff ? "mine" : "bookmarks";
+}
+
+@functions {
+    private static bool IsVisibleNow(NguyenCongNhatMVC.Models.NewsArticle a) =>
+        a.ArticleStateID == 3 && a.NewsStatus &&
+        (!a.ScheduledPublishDate.HasValue || a.ScheduledPublishDate <= DateTime.Now);
+
+    private static string StateClass(NguyenCongNhatMVC.Models.NewsArticle a) =>
+        a.ArticleStateID == 3 ? "role-staff" : a.ArticleStateID == 2 ? "role-admin" : "role-reader";
+}
+
+<partial name="_Alerts" />
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Library</h1>
+        <p class="page-subtitle">Your saved articles and everything you've written</p>
+    </div>
+</div>
+
+<div class="lib-tabs">
+    @if (Model.IsStaff)
+    {
+        <a class="lib-tab @(tab == "mine" ? "is-active" : "")"
+           href="?tab=mine">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                <rect x="2" y="2" width="4" height="6" rx=".8" fill="currentColor" opacity=".7"/>
+                <rect x="8" y="2" width="5" height="3.5" rx=".8" fill="currentColor" opacity=".7"/>
+                <rect x="2" y="10" width="11" height="1.5" rx=".7" fill="currentColor" opacity=".4"/>
+                <rect x="8" y="7" width="5" height="2.5" rx=".8" fill="currentColor" opacity=".4"/>
+            </svg>
+            My Articles
+            <span class="lib-tab-count">@Model.CreatedArticles.Count</span>
+        </a>
+    }
+    <a class="lib-tab @(tab == "bookmarks" ? "is-active" : "")"
+       href="?tab=bookmarks">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <path d="M3.5 2.5h8a.5.5 0 01.5.5v9.5l-4-2.5-4 2.5V3a.5.5 0 01-.5-.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+        </svg>
+        Bookmarks
+        <span class="lib-tab-count">@Model.BookmarkedArticles.Count</span>
+    </a>
+</div>
+
+@if (tab == "mine" && Model.IsStaff)
+{
+    @if (!Model.CreatedArticles.Any())
+    {
+        <div class="empty-state mt-3">
+            <h3>No articles yet</h3>
+            <p>Create your first article from the <a asp-controller="News" asp-action="Manage">Articles</a> screen.</p>
+        </div>
+    }
+    else
+    {
+        <div class="admin-news-list mt-3">
+            @foreach (var item in Model.CreatedArticles)
+            {
+                var isVisible = IsVisibleNow(item);
+                <a class="admin-news-row" asp-controller="News" asp-action="Details" asp-route-id="@item.NewsArticleID">
+                    <div class="admin-news-thumb">
+                        @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                        {
+                            <img src="@item.ImageUrl" alt="@item.NewsTitle" />
+                        }
+                        else
+                        {
+                            <span>@(item.NewsTitle?.Length > 0 ? item.NewsTitle[0].ToString().ToUpper() : "N")</span>
+                        }
+                    </div>
+                    <div class="admin-news-main">
+                        <div class="news-meta">
+                            <span>@item.CreatedDate.ToString("dd MMM yyyy")</span>
+                            @if (item.Category != null)
+                            {
+                                <span class="news-category">@item.Category.CategoryName</span>
+                            }
+                        </div>
+                        <h2 class="article-card-title">@item.NewsTitle</h2>
+                        <p>@item.Headline</p>
+                    </div>
+                    <div class="admin-news-status">
+                        <span class="role-pill @StateClass(item)">@item.ArticleState?.StateName</span>
+                        <span class="@(isVisible ? "status-active" : "status-inactive")">
+                            @(isVisible ? "Active" : "Inactive")
+                        </span>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+}
+else
+{
+    @if (!Model.BookmarkedArticles.Any())
+    {
+        <div class="empty-state mt-3">
+            <h3>No bookmarks yet</h3>
+            <p>Bookmark articles from the article detail page to save them here.</p>
+        </div>
+    }
+    else
+    {
+        <div class="admin-news-list mt-3">
+            @foreach (var item in Model.BookmarkedArticles)
+            {
+                var isVisible = IsVisibleNow(item);
+                <a class="admin-news-row" asp-controller="News" asp-action="Details" asp-route-id="@item.NewsArticleID">
+                    <div class="admin-news-thumb">
+                        @if (!string.IsNullOrWhiteSpace(item.ImageUrl))
+                        {
+                            <img src="@item.ImageUrl" alt="@item.NewsTitle" />
+                        }
+                        else
+                        {
+                            <span>@(item.NewsTitle?.Length > 0 ? item.NewsTitle[0].ToString().ToUpper() : "N")</span>
+                        }
+                    </div>
+                    <div class="admin-news-main">
+                        <div class="news-meta">
+                            <span>@item.CreatedDate.ToString("dd MMM yyyy")</span>
+                            @if (item.Category != null)
+                            {
+                                <span class="news-category">@item.Category.CategoryName</span>
+                            }
+                            @if (item.CreatedBy != null)
+                            {
+                                <span>@item.CreatedBy.AccountName</span>
+                            }
+                        </div>
+                        <h2 class="article-card-title">@item.NewsTitle</h2>
+                        <p>@item.Headline</p>
+                    </div>
+                    <div class="admin-news-status">
+                        <span class="role-pill @StateClass(item)">@item.ArticleState?.StateName</span>
+                        <span class="@(isVisible ? "status-active" : "status-inactive")">
+                            @(isVisible ? "Visible" : "Hidden")
+                        </span>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+}

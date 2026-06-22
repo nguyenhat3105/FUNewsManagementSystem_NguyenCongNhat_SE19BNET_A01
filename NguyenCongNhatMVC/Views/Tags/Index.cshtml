@@ -1,0 +1,93 @@
+@model IEnumerable<Tag>
+@{
+    ViewData["Title"] = "Tags";
+}
+
+<partial name="_Alerts" />
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Tags</h1>
+        <p class="page-subtitle">Manage discovery labels used by news articles.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <form method="get" class="search-form">
+            <input name="keyword" value="@ViewBag.Keyword" class="form-control" placeholder="Search tags" />
+            <button class="btn btn-outline-primary">Search</button>
+        </form>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tagModal">Create</button>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="table table-striped align-middle mb-0">
+        <thead><tr><th>Name</th><th>Note</th><th class="text-end">Actions</th></tr></thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td class="strong-cell">@item.TagName</td>
+                <td class="muted-cell">@item.Note</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-secondary edit-tag"
+                            data-bs-toggle="modal" data-bs-target="#tagModal"
+                            data-id="@item.TagID"
+                            data-name="@item.TagName"
+                            data-note="@item.Note">Edit</button>
+                    <form asp-action="Delete" method="post" class="d-inline"
+                          data-confirm="This tag will be permanently deleted."
+                          data-confirm-title="Delete tag?"
+                          data-confirm-ok="Delete tag"
+                          data-confirm-variant="danger">
+                        <input type="hidden" name="id" value="@item.TagID" />
+                        <button class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="tagModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form asp-action="Save" method="post" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tag</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="TagID" id="tagId" value="0" />
+                <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <input name="TagName" id="tagName" class="form-control" required maxlength="100" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Note</label>
+                    <textarea name="Note" id="tagNote" class="form-control" maxlength="250"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.querySelectorAll('.edit-tag').forEach(button => {
+    button.addEventListener('click', () => {
+        document.getElementById('tagId').value = button.dataset.id;
+        document.getElementById('tagName').value = button.dataset.name;
+        document.getElementById('tagNote').value = button.dataset.note || '';
+    });
+});
+document.getElementById('tagModal').addEventListener('show.bs.modal', event => {
+    if (!event.relatedTarget || !event.relatedTarget.classList.contains('edit-tag')) {
+        event.target.querySelector('form').reset();
+        document.getElementById('tagId').value = '0';
+    }
+});
+</script>
+}

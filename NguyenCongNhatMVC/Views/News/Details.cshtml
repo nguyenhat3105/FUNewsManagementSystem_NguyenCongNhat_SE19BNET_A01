@@ -1,0 +1,341 @@
+@model NewsArticle
+@{
+    ViewData["Title"] = Model.NewsTitle;
+    var comments     = (IEnumerable<ArticleComment>)(ViewBag.Comments ?? new List<ArticleComment>());
+    var history      = (IEnumerable<ApprovalHistory>)(ViewBag.ApprovalHistory ?? new List<ApprovalHistory>());
+    var currentUser  = Context.Session.GetUser();
+    var canInteract  = currentUser != null && currentUser.AccountID > 0;
+    var isAdmin      = currentUser?.Role == "Admin";
+    var isStaff      = currentUser?.Role == "Staff";
+    var isPrivileged = isAdmin || isStaff;
+    var isPublished  = Model.ArticleStateID == 3 && Model.NewsStatus;
+    var isPending    = Model.ArticleStateID == 2;
+    var stateColor   = Model.ArticleStateID == 1 ? "role-reader"
+                     : Model.ArticleStateID == 2 ? "role-admin"
+                     : Model.ArticleStateID == 3 ? "role-staff"
+                     : "role-reader";
+    var authorInitial = Model.CreatedBy?.AccountName?.Length > 0
+                        ? Model.CreatedBy.AccountName[0].ToString().ToUpper() : "?";
+}
+
+<partial name="_Alerts" />
+
+<div class="detail-layout @(isPrivileged ? "detail-layout--admin" : "")">
+
+    @* ════ Main article column ════ *@
+    <article class="article-detail">
+
+        <a asp-action="Index" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Back to News
+        </a>
+
+        <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+            @if (Model.Category != null)
+            {
+                <span class="article-category-chip">@Model.Category.CategoryName</span>
+            }
+            <span class="role-pill @stateColor">@(Model.ArticleState?.StateName ?? "Unknown")</span>
+            @if (isPublished)
+            {
+                <span class="status-active">Live</span>
+            }
+            else if (!isPrivileged)
+            {
+                <span class="status-inactive">Not published</span>
+            }
+        </div>
+
+        <h1 class="article-title">@Model.NewsTitle</h1>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Headline))
+        {
+            <p class="article-lead">@Model.Headline</p>
+        }
+
+        <div class="article-byline">
+            <div class="byline-avatar">
+                @if (!string.IsNullOrWhiteSpace(Model.CreatedBy?.AvatarUrl))
+                {
+                    <img src="@Model.CreatedBy.AvatarUrl" alt="@Model.CreatedBy.AccountName" />
+                }
+                else
+                {
+                    @authorInitial
+                }
+            </div>
+            <div class="byline-info">
+                <span class="byline-name">@(Model.CreatedBy?.AccountName ?? "Unknown")</span>
+                <span class="byline-meta">
+                    @Model.CreatedDate.ToString("dd MMM yyyy, HH:mm")
+                    @if (Model.ScheduledPublishDate.HasValue)
+                    {
+                        <span> &bull; Scheduled: @Model.ScheduledPublishDate.Value.ToString("dd MMM yyyy, HH:mm")</span>
+                    }
+                </span>
+            </div>
+            @if (Model.NewsTags.Any())
+            {
+                <div class="tag-row ms-auto">
+                    @foreach (var tag in Model.NewsTags.Select(nt => nt.Tag?.TagName).Where(t => t != null))
+                    {
+                        <span class="badge text-bg-secondary">#@tag</span>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+        {
+            <img src="@Model.ImageUrl" alt="@Model.NewsTitle" class="article-hero-image" />
+        }
+
+        <div class="article-content">@Model.NewsContent</div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.NewsSource))
+        {
+            <div class="article-source">
+                <strong>Source:</strong> @Model.NewsSource
+            </div>
+        }
+
+        @if (canInteract)
+        {
+            var userLiked     = (bool)(ViewBag.UserLiked     ?? false);
+            var userBookmarked = (bool)(ViewBag.UserBookmarked ?? false);
+            <div class="reaction-bar">
+                <form asp-action="ToggleLike" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.NewsArticleID" />
+                    <button type="submit" class="reaction-btn @(userLiked ? "is-active" : "")">
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                            <path d="M7.5 12.5S1.5 9 1.5 5.5a3 3 0 016 0 3 3 0 016 0c0 3.5-6 7-6 7z"
+                                  stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"
+                                  @(userLiked ? "fill=\"currentColor\"" : "")/>
+                        </svg>
+                        Like
+                        @if ((int?)ViewBag.LikeCount > 0)
+                        {
+                            <span class="reaction-count">@ViewBag.LikeCount</span>
+                        }
+                    </button>
+                </form>
+                <form asp-action="ToggleBookmark" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.NewsArticleID" />
+                    <button type="submit" class="reaction-btn @(userBookmarked ? "is-active" : "")">
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                            <path d="M3.5 2.5h8a.5.5 0 01.5.5v9.5l-4-2.5-4 2.5V3a.5.5 0 01-.5-.5z"
+                                  stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"
+                                  @(userBookmarked ? "fill=\"currentColor\"" : "")/>
+                        </svg>
+                        Bookmark
+                        @if ((int?)ViewBag.BookmarkCount > 0)
+                        {
+                            <span class="reaction-count">@ViewBag.BookmarkCount</span>
+                        }
+                    </button>
+                </form>
+                <span class="reaction-divider"></span>
+                <span class="reaction-stat">
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                        <path d="M11.5 4a1.5 1.5 0 00-1.5-1.5H3A1.5 1.5 0 001.5 4v3.5A1.5 1.5 0 003 9H4v2.5l3-2.5H10a1.5 1.5 0 001.5-1.5V4z"
+                              stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+                    </svg>
+                    @comments.Count() comment@(comments.Count() != 1 ? "s" : "")
+                </span>
+            </div>
+        }
+
+        @* ── Comments ── *@
+        <div class="comments-section">
+            <div class="comments-section-header">
+                <h2>Comments</h2>
+                <span class="comments-count">@comments.Count()</span>
+            </div>
+
+            @if (canInteract)
+            {
+                <form asp-action="AddComment" method="post" class="fb-comment-composer">
+                    <div class="fb-avatar">
+                        @if (!string.IsNullOrWhiteSpace(currentUser!.AvatarUrl))
+                        {
+                            <img src="@currentUser.AvatarUrl" alt="@currentUser.Name" />
+                        }
+                        else
+                        {
+                            @(currentUser.Name?.Length > 0 ? currentUser.Name[0].ToString().ToUpper() : "?")
+                        }
+                    </div>
+                    <input type="hidden" name="id" value="@Model.NewsArticleID" />
+                    <input type="hidden" name="displayName" value="@currentUser!.Name" />
+                    <input name="content" class="form-control"
+                           placeholder="Write a comment…"
+                           required maxlength="1000" autocomplete="off" />
+                    <button type="submit" class="fb-send-button" aria-label="Post comment"></button>
+                </form>
+            }
+            else
+            {
+                <div class="comment-login-prompt">
+                    <a asp-controller="Auth" asp-action="Login">Sign in</a> to join the conversation.
+                </div>
+            }
+
+            @if (!comments.Any())
+            {
+                <p class="no-comments">No comments yet. Be the first!</p>
+            }
+            else
+            {
+                <div class="fb-comment-list mt-3">
+                    @foreach (var comment in comments)
+                    {
+                        <partial name="_CommentThread"
+                                 model="comment"
+                                 view-data='new ViewDataDictionary(ViewData) {
+                                     ["ArticleId"]       = Model.NewsArticleID,
+                                     ["CurrentUserName"] = currentUser?.Name ?? string.Empty,
+                                     ["CurrentUserId"]   = currentUser?.AccountID ?? 0,
+                                     ["CanInteract"]     = canInteract,
+                                     ["Depth"]           = 0 }' />
+                    }
+                </div>
+            }
+        </div>
+
+    </article>
+
+    @* ════ Sidebar (Admin / Staff only) ════ *@
+    @if (isPrivileged)
+    {
+        <aside class="detail-sidebar">
+
+            @* ── Approve/Reject card (Admin only, Pending only) ── *@
+            @if (isAdmin && isPending)
+            {
+                <div class="sidebar-card sidebar-card--review">
+                    <div class="sidebar-card-header sidebar-card-header--pending">
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                            <circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.3"/>
+                            <path d="M4.5 7.5l2 2 4-4" stroke="currentColor" stroke-width="1.3"
+                                  stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Pending Review
+                    </div>
+                    <div class="sidebar-card-body">
+                        <form asp-action="Approve" method="post" class="sidebar-form">
+                            <input type="hidden" name="id" value="@Model.NewsArticleID" />
+                            <textarea name="note" class="form-control" rows="2"
+                                      placeholder="Optional note for author…"></textarea>
+                            <button class="btn btn-primary w-100 mt-2">
+                                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                    <path d="M2 6.5l4 4 5-6" stroke="white" stroke-width="1.6"
+                                          stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Approve &amp; Publish
+                            </button>
+                        </form>
+                        <div class="sidebar-divider">or</div>
+                        <form asp-action="Reject" method="post" class="sidebar-form">
+                            <input type="hidden" name="id" value="@Model.NewsArticleID" />
+                            <textarea name="note" class="form-control" rows="2"
+                                      placeholder="Rejection reason…"></textarea>
+                            <button class="btn btn-outline-danger w-100 mt-2">
+                                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                                    <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" stroke-width="1.5"
+                                          stroke-linecap="round"/>
+                                </svg>
+                                Reject
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+
+            @* ── Article info ── *@
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <rect x="2" y="2" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.3"/>
+                        <path d="M4.5 5h5M4.5 7h5M4.5 9h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                    </svg>
+                    Article Info
+                </div>
+                <dl class="sidebar-dl">
+                    <dt>ID</dt><dd><code style="font-size:.8125rem">@Model.NewsArticleID</code></dd>
+                    <dt>State</dt><dd><span class="role-pill @stateColor">@(Model.ArticleState?.StateName ?? "—")</span></dd>
+                    <dt>Visibility</dt>
+                    <dd>@if (isPublished) { <span class="status-active">Live</span> } else { <span class="status-inactive">Hidden</span> }</dd>
+                    <dt>Author</dt><dd>@(Model.CreatedBy?.AccountName ?? "Unknown")</dd>
+                    <dt>Created</dt><dd>@Model.CreatedDate.ToString("dd MMM yyyy")</dd>
+                    @if (Model.ScheduledPublishDate.HasValue)
+                    {
+                        <dt>Scheduled</dt><dd>@Model.ScheduledPublishDate.Value.ToString("dd MMM HH:mm")</dd>
+                    }
+                    <dt>Likes</dt><dd>@ViewBag.LikeCount</dd>
+                    <dt>Bookmarks</dt><dd>@ViewBag.BookmarkCount</dd>
+                    <dt>Comments</dt><dd>@comments.Count()</dd>
+                </dl>
+            </div>
+
+            @* ── Approval history ── *@
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/>
+                        <path d="M7 4v3.5l2 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                    </svg>
+                    Approval History
+                    <span class="comments-count ms-auto">@history.Count()</span>
+                </div>
+                @if (!history.Any())
+                {
+                    <p class="sidebar-empty">No events recorded yet.</p>
+                }
+                else
+                {
+                    <div class="history-list">
+                        @foreach (var evt in history.OrderByDescending(h => h.Timestamp))
+                        {
+                            var dotColor = evt.Action == "Approve" ? "green"
+                                         : evt.Action == "Reject"  ? "red"
+                                         : "blue";
+                            <div class="history-item">
+                                <div class="history-item-dot history-dot--@dotColor"></div>
+                                <div class="history-item-body">
+                                    <div class="history-item-action">
+                                        @evt.Action
+                                        <span class="history-item-by">by @(evt.Account?.AccountName ?? "System")</span>
+                                    </div>
+                                    <div class="history-item-meta">@evt.Timestamp.ToString("dd MMM yyyy, HH:mm")</div>
+                                    @if (!string.IsNullOrWhiteSpace(evt.Note))
+                                    {
+                                        <div class="history-item-note">@evt.Note</div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+        </aside>
+    }
+
+</div>
+
+@section Scripts {
+<script>
+    // Reply toggle — also updates button text
+    document.querySelectorAll('.fb-reply-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const form = document.getElementById(btn.dataset.replyTarget);
+            if (!form) return;
+            const isOpen = form.classList.toggle('is-open');
+            if (isOpen) form.querySelector('input[name="content"]')?.focus();
+            btn.textContent = isOpen ? 'Cancel' : 'Reply';
+        });
+    });
+</script>
+}

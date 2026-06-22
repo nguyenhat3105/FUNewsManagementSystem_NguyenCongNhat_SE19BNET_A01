@@ -1,0 +1,127 @@
+@model ArticleComment
+@{
+    var articleId = (string)(ViewData["ArticleId"] ?? string.Empty);
+    var currentUserName = (string?)(ViewData["CurrentUserName"] ?? string.Empty);
+    var currentUserId = (int)(ViewData["CurrentUserId"] ?? 0);
+    var canInteract = (bool)(ViewData["CanInteract"] ?? false);
+    var depth = (int)(ViewData["Depth"] ?? 0);
+    var initials = string.IsNullOrWhiteSpace(Model.DisplayName)
+        ? "?"
+        : Model.DisplayName.Trim()[0].ToString().ToUpper();
+    var avatarUrl = Model.Account?.AvatarUrl;
+    var isOwner = canInteract && currentUserId > 0 && Model.AccountID == currentUserId;
+}
+
+<div class="fb-comment-thread @(depth > 0 ? "is-reply" : "")">
+    <div class="fb-comment" id="comment-@Model.ArticleCommentID">
+        <div class="fb-avatar">
+            @if (!string.IsNullOrWhiteSpace(avatarUrl))
+            {
+                <img src="@avatarUrl" alt="@Model.DisplayName avatar" />
+            }
+            else
+            {
+                <span>@initials</span>
+            }
+        </div>
+        <div class="fb-comment-body">
+            <div class="fb-bubble" id="bubble-@Model.ArticleCommentID">
+                <div class="fb-comment-head">
+                    <strong>@Model.DisplayName</strong>
+                    <span>@Model.CreatedAt.ToString("dd MMM yyyy, HH:mm")</span>
+                    @if (isOwner)
+                    {
+                        <div class="comment-menu-wrap">
+                            <button class="comment-menu-btn" aria-label="Comment options"
+                                    onclick="toggleCommentMenu(@Model.ArticleCommentID, event)">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <circle cx="8" cy="3" r="1.2" fill="currentColor"/>
+                                    <circle cx="8" cy="8" r="1.2" fill="currentColor"/>
+                                    <circle cx="8" cy="13" r="1.2" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            <div class="comment-menu-dropdown" id="cmenu-@Model.ArticleCommentID">
+                                <button class="comment-menu-item"
+                                        onclick="startEditComment(@Model.ArticleCommentID)">
+                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                        <path d="M9.5 2.5l2 2L4 12l-2 .5L2.5 10.5l7-7.5z"
+                                              stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                                    </svg>
+                                    Edit
+                                </button>
+                                <form method="post" asp-action="DeleteComment"
+                                      asp-route-id="@articleId"
+                                      data-confirm="This comment will be permanently deleted."
+                                      data-confirm-title="Delete comment?"
+                                      data-confirm-ok="Delete"
+                                      data-confirm-variant="danger">
+                                    <input type="hidden" name="commentId" value="@Model.ArticleCommentID" />
+                                    <button type="submit" class="comment-menu-item comment-menu-item--danger">
+                                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                            <path d="M2 3.5h10M5 3.5V2h4v1.5M3 3.5l.7 7.5h6.6L11 3.5"
+                                                  stroke="currentColor" stroke-width="1.3"
+                                                  stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Normal text view -->
+                <p class="comment-text" id="ctext-@Model.ArticleCommentID">@Model.Content</p>
+
+                <!-- Inline edit form -->
+                <form method="post" asp-action="EditComment"
+                      asp-route-id="@articleId"
+                      class="comment-edit-form"
+                      id="cedit-@Model.ArticleCommentID"
+                      style="display:none">
+                    <input type="hidden" name="commentId" value="@Model.ArticleCommentID" />
+                    <div class="comment-edit-row">
+                        <textarea name="content" class="form-control comment-edit-input"
+                                  rows="2" maxlength="1000">@Model.Content</textarea>
+                        <div class="comment-edit-actions">
+                            <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    onclick="cancelEditComment(@Model.ArticleCommentID)">Cancel</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            @if (canInteract)
+            {
+                <div class="fb-comment-actions">
+                    <button type="button" class="fb-reply-toggle"
+                            data-reply-target="reply-@Model.ArticleCommentID">Reply</button>
+                </div>
+                <form asp-action="AddComment" method="post"
+                      class="fb-reply-form" id="reply-@Model.ArticleCommentID">
+                    <input type="hidden" name="id" value="@articleId" />
+                    <input type="hidden" name="parentCommentId" value="@Model.ArticleCommentID" />
+                    <input type="hidden" name="displayName" value="@currentUserName" />
+                    <input name="content" class="form-control" placeholder="Write a reply"
+                           required maxlength="1000" />
+                    <button type="submit" class="fb-send-button" aria-label="Send reply"></button>
+                </form>
+            }
+
+            @if (Model.Replies.Any())
+            {
+                <div class="fb-replies">
+                    @foreach (var reply in Model.Replies.OrderBy(r => r.CreatedAt))
+                    {
+                        <partial name="_CommentThread"
+                                 model="reply"
+                                 view-data='new ViewDataDictionary(ViewData) {
+                                     ["Depth"] = depth + 1,
+                                     ["CurrentUserId"] = currentUserId }' />
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

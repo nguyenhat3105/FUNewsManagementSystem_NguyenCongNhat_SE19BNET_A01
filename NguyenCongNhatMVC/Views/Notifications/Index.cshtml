@@ -1,0 +1,92 @@
+@model List<NguyenCongNhatMVC.Models.Notification>
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Notifications</h1>
+        <p class="page-subtitle">Likes, bookmarks and comments on your articles</p>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="notif-empty">
+        <div class="notif-empty-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <path d="M16 4a8 8 0 00-8 8v6l-2.5 3H26.5L24 18v-6a8 8 0 00-8-8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                <path d="M13 25a3 3 0 006 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <h3>No notifications yet</h3>
+        <p>You'll be notified here when readers like, bookmark, or comment on your articles.</p>
+    </div>
+}
+else
+{
+    <div class="notif-list">
+        @foreach (var n in Model)
+        {
+            <a class="notif-item @(n.IsRead ? "" : "is-unread")"
+               asp-controller="Notifications" asp-action="Open" asp-route-id="@n.NotificationID">
+
+                <div class="notif-icon notif-icon--@n.Type.ToLower()">
+                    @if (n.Type == "Like")
+                    {
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M8 13.5S1.5 9.8 1.5 5.5a3.5 3.5 0 017 0 3.5 3.5 0 017 0c0 4.3-6.5 8-6.5 8z" fill="currentColor"/>
+                        </svg>
+                    }
+                    else if (n.Type == "Bookmark")
+                    {
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M3.5 2.5h9a.5.5 0 01.5.5v10.5l-5-3-5 3V3a.5.5 0 01.5-.5z" fill="currentColor"/>
+                        </svg>
+                    }
+                    else
+                    {
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M14 5.5a2 2 0 00-2-2H4a2 2 0 00-2 2v4a2 2 0 002 2h1v2.5l3-2.5H12a2 2 0 002-2v-4z" fill="currentColor"/>
+                        </svg>
+                    }
+                </div>
+
+                <div class="notif-body">
+                    <div class="notif-text">
+                        <strong>@n.ActorName</strong>
+                        @(n.Type switch {
+                            "Like"     => "liked your article",
+                            "Bookmark" => "bookmarked your article",
+                            "Reply"    => "replied to your comment",
+                            _          => "commented on your article"
+                        })
+                        <span class="notif-article-title">@n.NewsArticle?.NewsTitle</span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(n.Excerpt))
+                    {
+                        <div class="notif-excerpt">"@n.Excerpt"</div>
+                    }
+                    <div class="notif-time">@TimeAgo(n.CreatedAt)</div>
+                </div>
+
+                @if (!n.IsRead)
+                {
+                    <div class="notif-dot" aria-label="Unread"></div>
+                }
+            </a>
+        }
+    </div>
+}
+
+@functions {
+    private static string TimeAgo(DateTime dt)
+    {
+        var diff = DateTime.Now - dt;
+        if (diff.TotalMinutes < 1) return "just now";
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes}m ago";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours}h ago";
+        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays}d ago";
+        return dt.ToString("dd MMM yyyy");
+    }
+}

@@ -1,0 +1,42 @@
+@model IEnumerable<NewsArticle>
+@{
+    ViewData["Title"] = "Drafts";
+}
+
+<partial name="_Alerts" />
+<div class="page-header">
+    <div>
+        <h1 class="page-title">My Drafts</h1>
+        <p class="page-subtitle">Inactive articles created by you, ready for review or publishing.</p>
+    </div>
+    <a class="btn btn-outline-primary" asp-action="Manage">Manage articles</a>
+</div>
+
+<div class="table-container">
+    <table class="table table-striped align-middle mb-0">
+        <thead><tr><th>Title</th><th>Category</th><th>Created</th><th class="text-end">Actions</th></tr></thead>
+        <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="4" class="empty-state">No draft articles found.</td>
+            </tr>
+        }
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td class="strong-cell">@item.NewsTitle</td>
+                <td class="news-category">@item.Category?.CategoryName</td>
+                <td class="muted-cell">@item.CreatedDate.ToString("dd/MM/yyyy HH:mm")</td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@item.NewsArticleID">Preview</a>
+                    <form asp-action="ToggleStatus" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@item.NewsArticleID" />
+                        <button class="btn btn-sm btn-primary">Publish</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

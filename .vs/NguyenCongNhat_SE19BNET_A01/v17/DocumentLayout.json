@@ -1,0 +1,130 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\CONG NHAT\\Downloads\\ASM_PRN222\\NguyenCongNhat_SE19BNET_A01\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{E3C0A4B9-6327-4165-AD24-0D37C2649BD6}|NguyenCongNhatMVC\\NguyenCongNhatMVC.csproj|c:\\users\\cong nhat\\downloads\\asm_prn222\\nguyencongnhat_se19bnet_a01\\nguyencongnhatmvc\\views\\auth\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{E3C0A4B9-6327-4165-AD24-0D37C2649BD6}|NguyenCongNhatMVC\\NguyenCongNhatMVC.csproj|solutionrelative:nguyencongnhatmvc\\views\\auth\\login.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E3C0A4B9-6327-4165-AD24-0D37C2649BD6}|NguyenCongNhatMVC\\NguyenCongNhatMVC.csproj|c:\\users\\cong nhat\\downloads\\asm_prn222\\nguyencongnhat_se19bnet_a01\\nguyencongnhatmvc\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{E3C0A4B9-6327-4165-AD24-0D37C2649BD6}|NguyenCongNhatMVC\\NguyenCongNhatMVC.csproj|solutionrelative:nguyencongnhatmvc\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E3C0A4B9-6327-4165-AD24-0D37C2649BD6}|NguyenCongNhatMVC\\NguyenCongNhatMVC.csproj|c:\\users\\cong nhat\\downloads\\asm_prn222\\nguyencongnhat_se19bnet_a01\\nguyencongnhatmvc\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{E3C0A4B9-6327-4165-AD24-0D37C2649BD6}|NguyenCongNhatMVC\\NguyenCongNhatMVC.csproj|solutionrelative:nguyencongnhatmvc\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E3C0A4B9-6327-4165-AD24-0D37C2649BD6}|NguyenCongNhatMVC\\NguyenCongNhatMVC.csproj|c:\\users\\cong nhat\\downloads\\asm_prn222\\nguyencongnhat_se19bnet_a01\\nguyencongnhatmvc\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{E3C0A4B9-6327-4165-AD24-0D37C2649BD6}|NguyenCongNhatMVC\\NguyenCongNhatMVC.csproj|solutionrelative:nguyencongnhatmvc\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E3C0A4B9-6327-4165-AD24-0D37C2649BD6}|NguyenCongNhatMVC\\NguyenCongNhatMVC.csproj|c:\\users\\cong nhat\\downloads\\asm_prn222\\nguyencongnhat_se19bnet_a01\\nguyencongnhatmvc\\models\\category.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E3C0A4B9-6327-4165-AD24-0D37C2649BD6}|NguyenCongNhatMVC\\NguyenCongNhatMVC.csproj|solutionrelative:nguyencongnhatmvc\\models\\category.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E3C0A4B9-6327-4165-AD24-0D37C2649BD6}|NguyenCongNhatMVC\\NguyenCongNhatMVC.csproj|c:\\users\\cong nhat\\downloads\\asm_prn222\\nguyencongnhat_se19bnet_a01\\nguyencongnhatmvc\\data\\funewsdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E3C0A4B9-6327-4165-AD24-0D37C2649BD6}|NguyenCongNhatMVC\\NguyenCongNhatMVC.csproj|solutionrelative:nguyencongnhatmvc\\data\\funewsdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Login.cshtml",
+              "DocumentMoniker": "C:\\Users\\CONG NHAT\\Downloads\\ASM_PRN222\\NguyenCongNhat_SE19BNET_A01\\NguyenCongNhatMVC\\Views\\Auth\\Login.cshtml",
+              "RelativeDocumentMoniker": "NguyenCongNhatMVC\\Views\\Auth\\Login.cshtml",
+              "ToolTip": "C:\\Users\\CONG NHAT\\Downloads\\ASM_PRN222\\NguyenCongNhat_SE19BNET_A01\\NguyenCongNhatMVC\\Views\\Auth\\Login.cshtml",
+              "RelativeToolTip": "NguyenCongNhatMVC\\Views\\Auth\\Login.cshtml",
+              "ViewState": "AgIAAGsBAAAAAAAAAAAiwHQBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-06-21T18:42:03.045Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "C:\\Users\\CONG NHAT\\Downloads\\ASM_PRN222\\NguyenCongNhat_SE19BNET_A01\\NguyenCongNhatMVC\\Views\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "NguyenCongNhatMVC\\Views\\Shared\\_Layout.cshtml",
+              "ToolTip": "C:\\Users\\CONG NHAT\\Downloads\\ASM_PRN222\\NguyenCongNhat_SE19BNET_A01\\NguyenCongNhatMVC\\Views\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "NguyenCongNhatMVC\\Views\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAAOsAAAAAAAAAAAAiwAABAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-06-21T17:20:38.798Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "appsettings.Development.json",
+              "DocumentMoniker": "C:\\Users\\CONG NHAT\\Downloads\\ASM_PRN222\\NguyenCongNhat_SE19BNET_A01\\NguyenCongNhatMVC\\appsettings.Development.json",
+              "RelativeDocumentMoniker": "NguyenCongNhatMVC\\appsettings.Development.json",
+              "ToolTip": "C:\\Users\\CONG NHAT\\Downloads\\ASM_PRN222\\NguyenCongNhat_SE19BNET_A01\\NguyenCongNhatMVC\\appsettings.Development.json",
+              "RelativeToolTip": "NguyenCongNhatMVC\\appsettings.Development.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-06-21T16:08:01.296Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Category.cs",
+              "DocumentMoniker": "C:\\Users\\CONG NHAT\\Downloads\\ASM_PRN222\\NguyenCongNhat_SE19BNET_A01\\NguyenCongNhatMVC\\Models\\Category.cs",
+              "RelativeDocumentMoniker": "NguyenCongNhatMVC\\Models\\Category.cs",
+              "ToolTip": "C:\\Users\\CONG NHAT\\Downloads\\ASM_PRN222\\NguyenCongNhat_SE19BNET_A01\\NguyenCongNhatMVC\\Models\\Category.cs",
+              "RelativeToolTip": "NguyenCongNhatMVC\\Models\\Category.cs",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAAAAUAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-21T15:02:32.006Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "FUNewsDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\CONG NHAT\\Downloads\\ASM_PRN222\\NguyenCongNhat_SE19BNET_A01\\NguyenCongNhatMVC\\Data\\FUNewsDbContext.cs",
+              "RelativeDocumentMoniker": "NguyenCongNhatMVC\\Data\\FUNewsDbContext.cs",
+              "ToolTip": "C:\\Users\\CONG NHAT\\Downloads\\ASM_PRN222\\NguyenCongNhat_SE19BNET_A01\\NguyenCongNhatMVC\\Data\\FUNewsDbContext.cs",
+              "RelativeToolTip": "NguyenCongNhatMVC\\Data\\FUNewsDbContext.cs",
+              "ViewState": "AgIAAGkAAAAAAAAAAAAqwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-21T15:02:10.288Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\CONG NHAT\\Downloads\\ASM_PRN222\\NguyenCongNhat_SE19BNET_A01\\NguyenCongNhatMVC\\appsettings.json",
+              "RelativeDocumentMoniker": "NguyenCongNhatMVC\\appsettings.json",
+              "ToolTip": "C:\\Users\\CONG NHAT\\Downloads\\ASM_PRN222\\NguyenCongNhat_SE19BNET_A01\\NguyenCongNhatMVC\\appsettings.json",
+              "RelativeToolTip": "NguyenCongNhatMVC\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-06-07T15:15:00.106Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<partial name="_Alerts" />
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Operational overview for FUNews content management.</p>
+    </div>
+    <a class="btn btn-outline-primary" asp-controller="Accounts" asp-action="Report">Open report</a>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <span>Total Articles</span>
+        <strong>@Model.TotalArticles</strong>
+        <small>@Model.ActiveArticles active / @Model.InactiveArticles inactive</small>
+    </div>
+    <div class="stat-card">
+        <span>Accounts</span>
+        <strong>@Model.TotalAccounts</strong>
+        <small>@Model.StaffAccounts staff / @Model.LecturerAccounts lecturers</small>
+    </div>
+    <div class="stat-card">
+        <span>Categories</span>
+        <strong>@Model.TotalCategories</strong>
+        <small>Available content groups</small>
+    </div>
+    <div class="stat-card">
+        <span>Tags</span>
+        <strong>@Model.TotalTags</strong>
+        <small>Search and discovery labels</small>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <section class="panel">
+        <div class="section-title">
+            <h2 class="h4">Latest articles</h2>
+            <span>Newest first</span>
+        </div>
+        <div class="compact-list">
+            @foreach (var article in Model.LatestArticles)
+            {
+                <a asp-controller="News" asp-action="Details" asp-route-id="@article.NewsArticleID" class="compact-item">
+                    <div>
+                        <strong>@article.NewsTitle</strong>
+                        <small>@article.Category?.CategoryName - @article.CreatedBy?.AccountName</small>
+                    </div>
+                    <span class="@(article.NewsStatus ? "status-active" : "status-inactive")">@(article.NewsStatus ? "Active" : "Inactive")</span>
+                </a>
+            }
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="section-title">
+            <h2 class="h4">Category breakdown</h2>
+            <span>@Model.CategoryStats.Count category(s)</span>
+        </div>
+        <div class="category-bars">
+            @foreach (var stat in Model.CategoryStats)
+            {
+                var max = Math.Max(Model.CategoryStats.Max(s => s.ArticleCount), 1);
+                var width = Math.Max((int)Math.Round(stat.ArticleCount * 100.0 / max), 8);
+                <div class="category-bar">
+                    <div class="category-bar-label">
+                        <span>@stat.CategoryName</span>
+                        <strong>@stat.ArticleCount</strong>
+                    </div>
+                    <div class="category-bar-track">
+                        <div style="width:@width%"></div>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+</div>

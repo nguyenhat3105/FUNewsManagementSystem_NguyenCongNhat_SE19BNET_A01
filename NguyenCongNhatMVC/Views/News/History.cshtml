@@ -1,0 +1,61 @@
+@model IEnumerable<NewsArticle>
+@{
+    ViewData["Title"] = "My History";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">My News History</h1>
+        <p class="page-subtitle">Articles you have created or edited.</p>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="table table-striped align-middle mb-0">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="4" class="empty-state">
+                        <p>No article history yet.</p>
+                    </td>
+                </tr>
+            }
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.NewsArticleID" class="table-link">
+                            @item.NewsTitle
+                        </a>
+                    </td>
+                    <td>
+                        @if (item.Category != null)
+                        {
+                            <span class="news-category">@item.Category.CategoryName</span>
+                        }
+                    </td>
+                    <td>
+                        @if (item.NewsStatus)
+                        {
+                            <span class="status-active">Active</span>
+                        }
+                        else
+                        {
+                            <span class="status-inactive">Inactive</span>
+                        }
+                    </td>
+                    <td class="muted-cell">@item.CreatedDate.ToString("dd/MM/yyyy HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

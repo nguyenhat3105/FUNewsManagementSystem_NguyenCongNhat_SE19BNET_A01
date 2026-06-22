@@ -1,0 +1,218 @@
+@model IEnumerable<NewsArticle>
+@{
+    ViewData["Title"] = "Manage Articles";
+    var tags = (IEnumerable<Tag>)ViewBag.Tags;
+}
+
+<partial name="_Alerts" />
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">News Articles</h1>
+        <p class="page-subtitle">Manage drafts, review status, scheduling, and publishing.</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        <form method="get" class="search-form">
+            <input name="keyword" value="@ViewBag.Keyword" class="form-control" placeholder="Search articles" />
+            <button class="btn btn-outline-primary" type="submit">Search</button>
+        </form>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#articleModal" data-mode="create" id="create-article-btn">
+            + Create
+        </button>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="table table-striped align-middle mb-0">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Workflow</th>
+                <th>Created</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        <p>No articles yet. Create your first article!</p>
+                    </td>
+                </tr>
+            }
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.NewsArticleID" class="table-link">
+                            @item.NewsTitle
+                        </a>
+                    </td>
+                    <td>
+                        @if (item.Category != null)
+                        {
+                            <span class="news-category">@item.Category.CategoryName</span>
+                        }
+                    </td>
+                    <td>
+                        <div>@item.ArticleState?.StateName</div>
+                        @if (item.ArticleStateID == 3 && item.NewsStatus)
+                        {
+                            <span class="status-active">Active</span>
+                        }
+                        else
+                        {
+                            <span class="status-inactive">Inactive</span>
+                        }
+                        @if (item.ScheduledPublishDate.HasValue)
+                        {
+                            <div class="table-note">Scheduled: @item.ScheduledPublishDate.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                        }
+                    </td>
+                    <td class="muted-cell">@item.CreatedDate.ToString("dd/MM/yyyy")</td>
+                    <td class="text-end">
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button class="btn btn-sm btn-outline-secondary edit-article"
+                                    data-bs-toggle="modal" data-bs-target="#articleModal"
+                                    data-id="@item.NewsArticleID"
+                                    data-title="@item.NewsTitle"
+                                    data-headline="@item.Headline"
+                                    data-content="@item.NewsContent"
+                                    data-source="@item.NewsSource"
+                                    data-image="@item.ImageUrl"
+                                    data-category="@item.CategoryID"
+                                    data-state="@item.ArticleStateID"
+                                    data-scheduled="@item.ScheduledPublishDate?.ToString("yyyy-MM-ddTHH:mm")"
+                                    data-status="@item.NewsStatus.ToString().ToLower()"
+                                    data-tags="@string.Join(",", item.NewsTags.Select(nt => nt.TagID))">
+                                Edit
+                            </button>
+                            <form asp-action="ToggleStatus" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@item.NewsArticleID" />
+                                <button class="btn btn-sm btn-outline-primary">@(item.NewsStatus ? "Unpublish" : "Publish")</button>
+                            </form>
+                            @if (item.ArticleStateID == 1)
+                            {
+                                <form asp-action="SubmitForReview" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@item.NewsArticleID" />
+                                    <button class="btn btn-sm btn-primary">Submit</button>
+                                </form>
+                            }
+                            <form asp-action="Delete" method="post" class="d-inline"
+                                  data-confirm="This article and all its data will be permanently deleted."
+                                  data-confirm-title="Delete article?"
+                                  data-confirm-ok="Delete article"
+                                  data-confirm-variant="danger">
+                                <input type="hidden" name="id" value="@item.NewsArticleID" />
+                                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Article Modal -->
+<div class="modal fade" id="articleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <form asp-action="Save" method="post" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="articleModalTitle">Create Article</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body row g-3">
+                <input type="hidden" name="NewsArticleID" id="articleId" />
+                <div class="col-md-12">
+                    <label class="form-label">Title</label>
+                    <input name="NewsTitle" id="articleTitle" class="form-control" required maxlength="200" placeholder="Enter article title..." />
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Headline</label>
+                    <input name="Headline" id="articleHeadline" class="form-control" required maxlength="250" placeholder="Short summary of the article..." />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Category</label>
+                    <select name="CategoryID" id="articleCategory" class="form-select" asp-items="ViewBag.Categories" required></select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Source</label>
+                    <input name="NewsSource" id="articleSource" class="form-control" maxlength="200" placeholder="Optional source URL..." />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Article Image URL</label>
+                    <input name="ImageUrl" id="articleImage" class="form-control" maxlength="500" placeholder="https://example.com/news-image.jpg" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Workflow State</label>
+                    <select name="ArticleStateID" id="articleState" class="form-select" asp-items="ViewBag.States" required></select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Scheduled Publish Date</label>
+                    <input type="datetime-local" name="ScheduledPublishDate" id="articleScheduled" class="form-control" />
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Content</label>
+                    <textarea name="NewsContent" id="articleContent" class="form-control" rows="6" required placeholder="Write your article content here..."></textarea>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Tags</label>
+                    <select name="TagIDs" id="articleTags" class="form-select" multiple style="min-height: 100px;">
+                        @foreach (var tag in tags)
+                        {
+                            <option value="@tag.TagID">@tag.TagName</option>
+                        }
+                    </select>
+                    <small class="form-text">Hold Ctrl/Cmd to select multiple tags</small>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-check form-check-panel">
+                        <input class="form-check-input" type="checkbox" name="NewsStatus" value="true" id="articleStatus" checked />
+                        <input type="hidden" name="NewsStatus" value="false" />
+                        <label class="form-check-label" for="articleStatus">
+                            Publish article (set as Active)
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="articleSaveBtn">Save Article</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.querySelectorAll('.edit-article').forEach(button => {
+    button.addEventListener('click', () => {
+        document.getElementById('articleModalTitle').textContent = 'Edit Article';
+        document.getElementById('articleSaveBtn').textContent = 'Save Changes';
+        document.getElementById('articleId').value = button.dataset.id;
+        document.getElementById('articleTitle').value = button.dataset.title;
+        document.getElementById('articleHeadline').value = button.dataset.headline;
+        document.getElementById('articleContent').value = button.dataset.content;
+        document.getElementById('articleSource').value = button.dataset.source || '';
+        document.getElementById('articleImage').value = button.dataset.image || '';
+        document.getElementById('articleCategory').value = button.dataset.category;
+        document.getElementById('articleState').value = button.dataset.state || '1';
+        document.getElementById('articleScheduled').value = button.dataset.scheduled || '';
+        document.getElementById('articleStatus').checked = button.dataset.status === 'true';
+        const selected = (button.dataset.tags || '').split(',');
+        document.querySelectorAll('#articleTags option').forEach(option => option.selected = selected.includes(option.value));
+    });
+});
+document.getElementById('articleModal').addEventListener('show.bs.modal', event => {
+    if (!event.relatedTarget || !event.relatedTarget.classList.contains('edit-article')) {
+        event.target.querySelector('form').reset();
+        document.getElementById('articleId').value = '';
+        document.getElementById('articleModalTitle').textContent = 'Create Article';
+        document.getElementById('articleSaveBtn').textContent = 'Save Article';
+    }
+});
+</script>
+}
